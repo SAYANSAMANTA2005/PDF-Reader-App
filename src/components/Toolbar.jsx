@@ -15,7 +15,8 @@ import {
     Eraser,
     Volume2,
     Info,
-    Download
+    Download,
+    BookOpen
 } from 'lucide-react';
 import DrawingPanel from './DrawingPanel';
 

@@ -1,0 +1,261 @@
+/* src/styles/viewer.css */
+
+.app-container {
+    height: 100vh;
+    /* Full viewport height */
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.dragging {
+    border: 4px dashed var(--accent-color);
+}
+
+.main-layout {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+}
+
+.header {
+    height: var(--toolbar-height);
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    z-index: 10;
+    box-shadow: var(--shadow-sm);
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--accent-color);
+    font-weight: 600;
+    font-size: 1.1rem;
+    min-width: 150px;
+}
+
+.content-area {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    /* Prevent body scroll */
+    position: relative;
+}
+
+.viewer-area {
+    flex: 1;
+    background-color: var(--bg-primary);
+    /* Document background */
+    overflow: auto;
+    /* Enable scrolling for the PDF content */
+    display: flex;
+    justify-content: center;
+    /* Center pages horizontally */
+    align-items: flex-start;
+    /* Start pages at top */
+    padding: 2rem;
+    position: relative;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background-color: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+    flex-shrink: 0;
+}
+
+.sidebar-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-tab {
+    flex: 1;
+    padding: 0.75rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    border-bottom: 2px solid transparent;
+}
+
+.sidebar-tab.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+/* Toolbar */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex: 1;
+    justify-content: space-between;
+}
+
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tool-btn {
+    padding: 0.5rem;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.tool-btn:hover:not(:disabled) {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.tool-btn.active {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.tool-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.divider {
+    width: 1px;
+    height: 24px;
+    background-color: var(--border-color);
+    margin: 0 0.5rem;
+}
+
+.page-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.page-info {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.page-input {
+    width: 40px;
+    text-align: center;
+    padding: 0.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* Upload State */
+.upload-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    color: var(--text-secondary);
+}
+
+.upload-box {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 3rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    background-color: var(--bg-secondary);
+    max-width: 400px;
+    width: 90%;
+}
+
+.upload-icon {
+    color: var(--accent-color);
+    margin-bottom: 0.5rem;
+}
+
+.upload-btn {
+    margin-top: 1rem;
+    background-color: var(--accent-color);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.upload-btn:hover {
+    background-color: var(--accent-hover);
+}
+
+/* PDF Viewer Pages */
+.pdf-page-container {
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
+    background-color: white;
+    transition: transform 0.2s ease;
+    position: relative;
+    /* Ensure page is centered */
+}
+
+.pdf-page-container canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Text Selection Layer - Crucial for text selection */
+.textLayer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    opacity: 0.2;
+    /* Make it invisible but selectable. Usually library handles this, let's see */
+    line-height: 1.0;
+}
+
+/* Note: PDF.js requires specific CSS for text layer to match canvas exact position. 
+   We will import pdf_viewer.css or similar from library if possible, or define key rules.
+*/
+.textLayer>span {
+    color: transparent;
+    position: absolute;
+    white-space: pre;
+    cursor: text;
+    transform-origin: 0% 0%;
+}
+
+::selection {
+    background: rgba(59, 130, 246, 0.3);
+    /* Blue selection */
+}

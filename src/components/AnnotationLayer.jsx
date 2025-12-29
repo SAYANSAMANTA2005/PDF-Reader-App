@@ -1,0 +1,136 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { usePDF } from '../context/PDFContext';
+
+const AnnotationLayer = ({ width, height, scale, pageNum }) => {
+    const { 
+        annotationMode, 
+        annotations, 
+        setAnnotations, 
+        annotationColor 
+    } = usePDF();
+    
+    const [isDrawing, setIsDrawing] = useState(false);
+    const [currentPath, setCurrentPath] = useState([]);
+    const svgRef = useRef(null);
+
+    // Get annotations for this page
+    const pageAnnotations = annotations[pageNum] || [];
+
+    const getCoordinates = (e) => {
+        if (!svgRef.current) return { x: 0, y: 0 };
+        const rect = svgRef.current.getBoundingClientRect();
+        return {
+            x: (e.clientX - rect.left), // Store as raw pixel coords relative to current view, or scale independent?
+            // Ideally should store independent of scale (0-1 or PDF point coords). 
+            // For simplicity in this iteration: store raw, but re-calculate on render if needed? 
+            // Actually, if we just scale the SVG via CSS transform or viewBox, it might work.
+            // Let's store relative to the CURRENT viewport size (width/height passed in props).
+            // Better: Store as % or normalized, OR just simple raw pixels and clear on resize (bad).
+            // Compromise: Store normalized (0-1) and project back.
+            x: (e.clientX - rect.left) / width,
+            y: (e.clientY - rect.top) / height
+        };
+    };
+
+    const handleMouseDown = (e) => {
+        if (annotationMode === 'none') return;
+        setIsDrawing(true);
+        const coords = getCoordinates(e);
+        setCurrentPath([coords]);
+    };
+
+    const handleMouseMove = (e) => {
+        if (!isDrawing || annotationMode === 'none') return;
+        const coords = getCoordinates(e);
+        setCurrentPath(prev => [...prev, coords]);
+    };
+
+    const handleMouseUp = () => {
+        if (!isDrawing) return;
+        setIsDrawing(false);
+        
+        if (currentPath.length > 0) {
+            const newAnnotation = {
+                type: annotationMode === 'highlight' ? 'highlight' : 'draw',
+                color: annotationMode === 'highlight' ? '#ffff00' : annotationColor, // Highlight is always yellow for now? or use selected color with opacity
+                opacity: annotationMode === 'highlight' ? 0.4 : 1,
+                strokeWidth: annotationMode === 'highlight' ? 20 : 3,
+                points: currentPath
+            };
+
+            setAnnotations(prev => ({
+                ...prev,
+                [pageNum]: [...(prev[pageNum] || []), newAnnotation]
+            }));
+            setCurrentPath([]);
+        }
+    };
+
+    // Helper to Convert path points to parsed SVG path string
+    const pointsToPath = (points) => {
+        if (points.length === 0) return '';
+        // Scale normalized points back to current width/height
+        const start = points[0];
+        let d = `M ${start.x * width} ${start.y * height}`;
+        for (let i = 1; i < points.length; i++) {
+            d += ` L ${points[i].x * width} ${points[i].y * height}`;
+        }
+        return d;
+    };
+
+    return (
+        <div 
+            className="annotation-layer" 
+            style={{ 
+                position: 'absolute', 
+                top: 0, 
+                left: 0, 
+                width: `${width}px`, 
+                height: `${height}px`,
+                zIndex: 10,
+                pointerEvents: annotationMode === 'none' ? 'none' : 'auto',
+                cursor: annotationMode === 'none' ? 'default' : 'crosshair'
+            }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+        >
+            <svg 
+                ref={svgRef}
+                width={width} 
+                height={height} 
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+            >
+                {/* Render Existing Annotations */}
+                {pageAnnotations.map((ann, idx) => (
+                    <path
+                        key={idx}
+                        d={pointsToPath(ann.points)}
+                        stroke={ann.color}
+                        strokeWidth={ann.strokeWidth || 3}
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        opacity={ann.opacity || 1}
+                    />
+                ))}
+
+                {/* Render Current Drawing Path */}
+                {currentPath.length > 0 && (
+                    <path
+                        d={pointsToPath(currentPath)}
+                        stroke={annotationMode === 'highlight' ? '#ffff00' : annotationColor}
+                        strokeWidth={annotationMode === 'highlight' ? 20 : 3}
+                        fill="none"
+                         strokeLinecap="round"
+                        strokeLinejoin="round"
+                        opacity={annotationMode === 'highlight' ? 0.4 : 1}
+                    />
+                )}
+            </svg>
+        </div>
+    );
+};
+
+export default AnnotationLayer;

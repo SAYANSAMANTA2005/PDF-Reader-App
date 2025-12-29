@@ -34,7 +34,10 @@ export const PDFProvider = ({ children }) => {
     const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
     const [annotationMode, setAnnotationMode] = useState('none'); // 'none', 'highlight', 'draw', 'text'
     const [annotations, setAnnotations] = useState({}); // { [pageNum]: [ { type, ...data } ] }
-    const [annotationColor, setAnnotationColor] = useState('#ffff00'); // Default highlight color
+    const [annotationColor, setAnnotationColor] = useState('#ff0000'); // Default to red as in many editors, or yellow for highlight
+    const [brushThickness, setBrushThickness] = useState(3);
+    const [highlightThickness, setHighlightThickness] = useState(20);
+    const [eraserThickness, setEraserThickness] = useState(20);
     const [isTwoPageMode, setIsTwoPageMode] = useState(false);
 
     // Speech Synthesis State
@@ -369,6 +372,12 @@ export const PDFProvider = ({ children }) => {
         setAnnotations,
         annotationColor,
         setAnnotationColor,
+        brushThickness,
+        setBrushThickness,
+        highlightThickness,
+        setHighlightThickness,
+        eraserThickness,
+        setEraserThickness,
         isTwoPageMode,
         setIsTwoPageMode,
         isReading,

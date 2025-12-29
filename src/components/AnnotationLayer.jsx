@@ -2,34 +2,39 @@ import React, { useState, useRef, useEffect } from 'react';
 import { usePDF } from '../context/PDFContext';
 
 const AnnotationLayer = ({ width, height, scale, pageNum }) => {
-    const { 
-        annotationMode, 
-        annotations, 
-        setAnnotations, 
-        annotationColor 
+    const {
+        annotationMode,
+        annotations,
+        setAnnotations,
+        annotationColor,
+        brushThickness
     } = usePDF();
-    
+
     const [isDrawing, setIsDrawing] = useState(false);
     const [currentPath, setCurrentPath] = useState([]);
     const svgRef = useRef(null);
 
     // Get annotations for this page
     const pageAnnotations = annotations[pageNum] || [];
-
     const getCoordinates = (e) => {
         if (!svgRef.current) return { x: 0, y: 0 };
         const rect = svgRef.current.getBoundingClientRect();
         return {
-            x: (e.clientX - rect.left), // Store as raw pixel coords relative to current view, or scale independent?
-            // Ideally should store independent of scale (0-1 or PDF point coords). 
-            // For simplicity in this iteration: store raw, but re-calculate on render if needed? 
-            // Actually, if we just scale the SVG via CSS transform or viewBox, it might work.
-            // Let's store relative to the CURRENT viewport size (width/height passed in props).
-            // Better: Store as % or normalized, OR just simple raw pixels and clear on resize (bad).
-            // Compromise: Store normalized (0-1) and project back.
             x: (e.clientX - rect.left) / width,
             y: (e.clientY - rect.top) / height
         };
+    };
+
+    const handleErase = (idx) => {
+        if (annotationMode !== 'erase') return;
+        setAnnotations(prev => {
+            const pageAnns = [...(prev[pageNum] || [])];
+            pageAnns.splice(idx, 1);
+            return {
+                ...prev,
+                [pageNum]: pageAnns
+            };
+        });
     };
 
     const handleMouseDown = (e) => {
@@ -48,13 +53,13 @@ const AnnotationLayer = ({ width, height, scale, pageNum }) => {
     const handleMouseUp = () => {
         if (!isDrawing) return;
         setIsDrawing(false);
-        
+
         if (currentPath.length > 0) {
             const newAnnotation = {
                 type: annotationMode === 'highlight' ? 'highlight' : 'draw',
-                color: annotationMode === 'highlight' ? '#ffff00' : annotationColor, // Highlight is always yellow for now? or use selected color with opacity
+                color: annotationMode === 'highlight' ? '#ffff00' : annotationColor,
                 opacity: annotationMode === 'highlight' ? 0.4 : 1,
-                strokeWidth: annotationMode === 'highlight' ? 20 : 3,
+                strokeWidth: annotationMode === 'highlight' ? 20 : brushThickness,
                 points: currentPath
             };
 
@@ -79,13 +84,13 @@ const AnnotationLayer = ({ width, height, scale, pageNum }) => {
     };
 
     return (
-        <div 
-            className="annotation-layer" 
-            style={{ 
-                position: 'absolute', 
-                top: 0, 
-                left: 0, 
-                width: `${width}px`, 
+        <div
+            className="annotation-layer"
+            style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: `${width}px`,
                 height: `${height}px`,
                 zIndex: 10,
                 pointerEvents: annotationMode === 'none' ? 'none' : 'auto',
@@ -96,10 +101,10 @@ const AnnotationLayer = ({ width, height, scale, pageNum }) => {
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
         >
-            <svg 
+            <svg
                 ref={svgRef}
-                width={width} 
-                height={height} 
+                width={width}
+                height={height}
                 style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
             >
                 {/* Render Existing Annotations */}
@@ -113,17 +118,27 @@ const AnnotationLayer = ({ width, height, scale, pageNum }) => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         opacity={ann.opacity || 1}
+                        onClick={() => handleErase(idx)}
+                        onMouseEnter={() => {
+                            if (isDrawing && annotationMode === 'erase') {
+                                handleErase(idx);
+                            }
+                        }}
+                        style={{
+                            cursor: annotationMode === 'erase' ? 'pointer' : 'inherit',
+                            pointerEvents: annotationMode === 'erase' ? 'auto' : 'none'
+                        }}
                     />
                 ))}
 
                 {/* Render Current Drawing Path */}
-                {currentPath.length > 0 && (
+                {currentPath.length > 0 && annotationMode !== 'erase' && (
                     <path
                         d={pointsToPath(currentPath)}
                         stroke={annotationMode === 'highlight' ? '#ffff00' : annotationColor}
-                        strokeWidth={annotationMode === 'highlight' ? 20 : 3}
+                        strokeWidth={annotationMode === 'highlight' ? 20 : brushThickness}
                         fill="none"
-                         strokeLinecap="round"
+                        strokeLinecap="round"
                         strokeLinejoin="round"
                         opacity={annotationMode === 'highlight' ? 0.4 : 1}
                     />

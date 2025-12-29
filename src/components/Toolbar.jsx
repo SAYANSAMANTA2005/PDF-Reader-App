@@ -12,9 +12,12 @@ import {
     ChevronRight,
     Highlighter,
     Pen,
+    Eraser,
     BookOpen,
-    Volume2
+    Volume2,
+    Info
 } from 'lucide-react';
+import DrawingPanel from './DrawingPanel';
 
 const Toolbar = () => {
     const {
@@ -28,8 +31,11 @@ const Toolbar = () => {
         annotationMode, setAnnotationMode,
         isTwoPageMode, setIsTwoPageMode,
         annotationColor, setAnnotationColor,
-        isReading, setIsReading, stopReading
+        isReading, setIsReading, stopReading,
+        brushThickness
     } = usePDF();
+
+    const [isDrawingPanelOpen, setIsDrawingPanelOpen] = useState(false);
 
     // Removed local isReading state and handleZoomIn duplicate
 
@@ -105,22 +111,38 @@ const Toolbar = () => {
                     <Highlighter size={20} color={annotationMode === 'highlight' ? 'white' : 'gold'} />
                 </button>
                 <button
-                    onClick={() => setAnnotationMode(annotationMode === 'draw' ? 'none' : 'draw')}
-                    className={`tool-btn ${annotationMode === 'draw' ? 'active' : ''}`}
-                    title="Draw"
+                    onClick={() => {
+                        setAnnotationMode(annotationMode === 'erase' ? 'none' : 'erase');
+                        setIsDrawingPanelOpen(false);
+                    }}
+                    className={`tool-btn ${annotationMode === 'erase' ? 'active' : ''}`}
+                    title="Eraser"
                     disabled={!pdfDocument}
                 >
-                    <Pen size={20} color={annotationMode === 'draw' ? annotationColor : 'currentColor'} />
+                    <Eraser size={20} />
                 </button>
-                {(annotationMode === 'draw' || annotationMode === 'highlight') && (
-                    <input
-                        type="color"
-                        value={annotationColor}
-                        onChange={(e) => setAnnotationColor(e.target.value)}
-                        title="Change Color"
-                        style={{ width: '30px', height: '30px', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}
-                    />
-                )}
+                <div className="drawing-control-wrapper" style={{ position: 'relative' }}>
+                    <button
+                        onClick={() => {
+                            if (annotationMode !== 'draw' && annotationMode !== 'highlight') {
+                                setAnnotationMode('draw');
+                                setIsDrawingPanelOpen(true);
+                            } else {
+                                setIsDrawingPanelOpen(!isDrawingPanelOpen);
+                            }
+                        }}
+                        className={`tool-btn drawing-tools-btn ${(annotationMode === 'draw' || annotationMode === 'highlight') ? 'active' : ''}`}
+                        title="Drawing Tools"
+                        disabled={!pdfDocument}
+                    >
+                        <Pen size={18} />
+                        <span className="btn-text">Draw</span>
+                        <ChevronRight size={14} className={`dropdown-arrow ${isDrawingPanelOpen ? 'open' : ''}`} style={{ transform: isDrawingPanelOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
+                    </button>
+                    {isDrawingPanelOpen && (
+                        <DrawingPanel onClose={() => setIsDrawingPanelOpen(false)} />
+                    )}
+                </div>
                 <button
                     onClick={() => setIsTwoPageMode(!isTwoPageMode)}
                     className={`tool - btn ${isTwoPageMode ? 'active' : ''} `}

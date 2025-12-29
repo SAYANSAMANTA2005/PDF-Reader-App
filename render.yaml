@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: pdf-reader-app
+    env: static
+    buildCommand: npm run build
+    staticPublishPath: ./dist
+    branch: main

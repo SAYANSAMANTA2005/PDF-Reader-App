@@ -1,7 +1,8 @@
 import React from 'react';
 import { usePDF } from '../context/PDFContext';
 import Thumbnails from './Thumbnails';
-import { Grid, Bookmark } from 'lucide-react';
+import { Grid, Bookmark, FileText } from 'lucide-react';
+import SummaryPanel from './SummaryPanel';
 
 const Sidebar = () => {
     const { activeSidebarTab, setActiveSidebarTab } = usePDF();
@@ -23,9 +24,18 @@ const Sidebar = () => {
                     <Bookmark size={18} style={{ marginBottom: '4px' }} />
                     <div>Bookmarks</div>
                 </button>
+                <button
+                    className={`sidebar-tab ${activeSidebarTab === 'summary' ? 'active' : ''}`}
+                    onClick={() => setActiveSidebarTab('summary')}
+                >
+                    <FileText size={18} style={{ marginBottom: '4px' }} />
+                    <div>Summary</div>
+                </button>
             </div>
             <div className="sidebar-content">
-                {activeSidebarTab === 'thumbnails' ? <Thumbnails /> : <div className="p-4 text-center text-secondary">Bookmarks not yet implemented</div>}
+                {activeSidebarTab === 'thumbnails' && <Thumbnails />}
+                {activeSidebarTab === 'bookmarks' && <div className="p-4 text-center text-secondary">Bookmarks not yet implemented</div>}
+                {activeSidebarTab === 'summary' && <SummaryPanel />}
             </div>
         </aside>
     );

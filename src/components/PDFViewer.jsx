@@ -11,7 +11,9 @@ const PDFViewer = () => {
         currentPage,
         setCurrentPage,
         rotation,
-        isTwoPageMode
+        isTwoPageMode,
+        isReading,
+        startReading
     } = usePDF();
 
     const containerRef = useRef(null);
@@ -112,6 +114,8 @@ const PDFViewer = () => {
                             pdfDocument={pdfDocument}
                             scale={scale}
                             rotation={rotation}
+                            isReading={isReading}
+                            onStartReading={startReading}
                         />
                     </div>
                 ))}
@@ -120,7 +124,7 @@ const PDFViewer = () => {
     );
 };
 
-const PDFPage = ({ pageNum, pdfDocument, scale, rotation }) => {
+const PDFPage = ({ pageNum, pdfDocument, scale, rotation, isReading, onStartReading }) => {
     const canvasRef = useRef(null);
     const textLayerRef = useRef(null);
     const [isVisible, setIsVisible] = useState(false);
@@ -173,11 +177,59 @@ const PDFPage = ({ pageNum, pdfDocument, scale, rotation }) => {
 
                 await page.render(renderContext).promise;
 
-                // Simple Text Layer
-                // For now, we are skipping the full TextLayer implementation to ensure stability.
-                // We will add invisible text for copy/paste if we can, but it is complex.
-                // If the user insists on text selection, we should use a library component like 'react-pdf' next time,
-                // but for "Senior Software Engineer" custom impl, we start with visual perfection.
+                // Text Layer with Read Aloud support
+                if (textLayerRef.current) {
+                    const textContent = await page.getTextContent();
+                    if (isCancelled) return;
+
+                    textLayerRef.current.innerHTML = '';
+                    textLayerRef.current.style.width = `${viewport.width}px`;
+                    textLayerRef.current.style.height = `${viewport.height}px`;
+                    textLayerRef.current.style.setProperty('--scale-factor', scale);
+
+                    textContent.items.forEach((item, index) => {
+                        const tx = pdfjsLib.Util.transform(
+                            pdfjsLib.Util.transform(viewport.transform, item.transform),
+                            [1, 0, 0, -1, 0, 0]
+                        );
+
+                        const style = textContent.styles[item.fontName];
+                        const fontHeight = Math.sqrt((tx[2] * tx[2]) + (tx[3] * tx[3]));
+
+                        if (style) {
+                            const span = document.createElement('span');
+                            span.textContent = item.str;
+                            span.style.left = `${tx[4]}px`;
+                            span.style.top = `${tx[5] - fontHeight}px`;
+                            span.style.fontSize = `${fontHeight}px`;
+                            span.style.fontFamily = 'sans-serif';
+                            span.style.position = 'absolute';
+                            span.style.color = 'transparent';
+                            span.style.whiteSpace = 'pre';
+                            span.style.cursor = isReading ? 'pointer' : 'text'; // Visual cue
+
+                            // Transform for width (basic approx)
+                            span.style.transform = `scaleX(${item.width / (item.str.length * fontHeight)})`;
+                            span.style.transformOrigin = '0% 0%';
+
+
+                            // Read Aloud Interaction
+                            span.onclick = (e) => {
+                                if (isReading) {
+                                    e.stopPropagation();
+                                    e.preventDefault(); // Prevent text selection
+
+                                    // Highlight spoken text? (Future)
+                                    // Start reading from this point
+                                    console.log(`Starting reading from page ${pageNum}, item ${index}`);
+                                    onStartReading(pageNum, index);
+                                }
+                            };
+
+                            textLayerRef.current.appendChild(span);
+                        }
+                    });
+                }
 
             } catch (err) {
                 console.error("Page render error:", err);
@@ -189,7 +241,7 @@ const PDFPage = ({ pageNum, pdfDocument, scale, rotation }) => {
         return () => {
             isCancelled = true;
         };
-    }, [isVisible, pdfDocument, pageNum, scale, rotation]);
+    }, [isVisible, pdfDocument, pageNum, scale, rotation, isReading, onStartReading]);
 
     return (
         <div

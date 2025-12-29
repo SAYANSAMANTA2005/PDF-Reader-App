@@ -26,11 +26,12 @@ const Toolbar = () => {
         theme, toggleTheme,
         pdfDocument,
         annotationMode, setAnnotationMode,
-        isTwoPageMode, setIsTwoPageMode
+        isTwoPageMode, setIsTwoPageMode,
+        annotationColor, setAnnotationColor,
+        isReading, setIsReading, stopReading
     } = usePDF();
 
-    const [isReading, setIsReading] = useState(false);
-    const speechRef = useRef(null);
+    // Removed local isReading state and handleZoomIn duplicate
 
     const handleZoomIn = () => setScale(prev => Math.min(prev + 0.1, 3.0));
     const handleZoomOut = () => setScale(prev => Math.max(prev - 0.1, 0.5));
@@ -105,12 +106,21 @@ const Toolbar = () => {
                 </button>
                 <button
                     onClick={() => setAnnotationMode(annotationMode === 'draw' ? 'none' : 'draw')}
-                    className={`tool - btn ${annotationMode === 'draw' ? 'active' : ''} `}
+                    className={`tool-btn ${annotationMode === 'draw' ? 'active' : ''}`}
                     title="Draw"
                     disabled={!pdfDocument}
                 >
-                    <Pen size={20} />
+                    <Pen size={20} color={annotationMode === 'draw' ? annotationColor : 'currentColor'} />
                 </button>
+                {(annotationMode === 'draw' || annotationMode === 'highlight') && (
+                    <input
+                        type="color"
+                        value={annotationColor}
+                        onChange={(e) => setAnnotationColor(e.target.value)}
+                        title="Change Color"
+                        style={{ width: '30px', height: '30px', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}
+                    />
+                )}
                 <button
                     onClick={() => setIsTwoPageMode(!isTwoPageMode)}
                     className={`tool - btn ${isTwoPageMode ? 'active' : ''} `}
@@ -122,21 +132,15 @@ const Toolbar = () => {
                 <button
                     onClick={() => {
                         if (isReading) {
-                            window.speechSynthesis.cancel();
+                            stopReading();
                             setIsReading(false);
                         } else {
-                            // Basic Read Aloud - Reads current page text (naive)
-                            // A real impl needs text extraction first.
-                            // We'll trigger a one-off read of "Read Aloud Mode Active" for now or similar.
-                            const utterance = new SpeechSynthesisUtterance("Read aloud started.");
-                            window.speechSynthesis.speak(utterance);
                             setIsReading(true);
-                            // Simulating read state (it stops auto)
-                            utterance.onend = () => setIsReading(false);
+                            // Visual cue?
                         }
                     }}
-                    className={`tool - btn ${isReading ? 'active' : ''} `}
-                    title="Read Aloud"
+                    className={`tool-btn ${isReading ? 'active' : ''}`}
+                    title="Read Aloud Mode (Click text to start)"
                     disabled={!pdfDocument}
                 >
                     <Volume2 size={20} />

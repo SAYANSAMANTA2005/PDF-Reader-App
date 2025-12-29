@@ -68,13 +68,33 @@
 
 /* Sidebar */
 .sidebar {
-    width: 250px;
+    /* width is now handled inline by React */
     background-color: var(--bg-secondary);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    transition: width 0.3s ease;
+    /* transition: width 0.3s ease;  <-- Remove transition to make dragging instant/smooth */
     flex-shrink: 0;
+    position: relative;
+    /* For resizer handle positioning */
+}
+
+.sidebar-resizer {
+    width: 6px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: -3px;
+    /* Center over the border */
+    cursor: col-resize;
+    z-index: 20;
+    transition: background-color 0.2s;
+}
+
+.sidebar-resizer:hover,
+.sidebar-resizer:active {
+    background-color: var(--accent-color);
+    opacity: 0.5;
 }
 
 .sidebar-tabs {

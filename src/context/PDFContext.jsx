@@ -24,6 +24,7 @@ export const PDFProvider = ({ children }) => {
     const [scale, setScale] = useState(1.0);
     const [rotation, setRotation] = useState(0);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [sidebarWidth, setSidebarWidth] = useState(250); // New state for resizing
     const [activeSidebarTab, setActiveSidebarTab] = useState('thumbnails'); // 'thumbnails', 'bookmarks'
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -347,6 +348,8 @@ export const PDFProvider = ({ children }) => {
         setRotation,
         isSidebarOpen,
         setIsSidebarOpen,
+        sidebarWidth,
+        setSidebarWidth,
         activeSidebarTab,
         setActiveSidebarTab,
         isLoading,

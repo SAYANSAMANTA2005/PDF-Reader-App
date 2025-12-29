@@ -1,4 +1,5 @@
 # PDF Reader App
+-**Public Link for App Use** - https://pdf-reader-app-41ag.onrender.com/
 
 A modern, fast, and feature-rich PDF Reader application built with React and Vite.
 
@@ -19,3 +20,4 @@ A modern, fast, and feature-rich PDF Reader application built with React and Vit
 - **Styling**: Vanilla CSS (Modular & Responsive)
 - **PDF Rendering**: pdf.js
 - **Icons**: Lucide React
+- **PUblic link**:https://pdf-reader-app-41ag.onrender.com/

@@ -59,6 +59,24 @@ export const PDFProvider = ({ children }) => {
         setSearchOperators(prev => ({ ...prev, [op]: !prev[op] }));
     };
 
+    // Advanced Academic Features State
+    const [examConfig, setExamConfig] = useState(null);
+    const [masteryMetrics, setMasteryMetrics] = useState({});
+    const [studyPlan, setStudyPlan] = useState(null);
+    const [crossPDFInsights, setCrossPDFInsights] = useState([]);
+    const [equationInsights, setEquationInsights] = useState(null);
+    const [isMathMode, setIsMathMode] = useState(false);
+    const [activeEquation, setActiveEquation] = useState(null);
+
+    // LEARNING INTELLIGENCE & ELITE FEATURES
+    const [knowledgeGraph, setKnowledgeGraph] = useState({ nodes: [], links: [] });
+    const [conceptMastery, setConceptMastery] = useState({}); // { [conceptName]: masteryScore }
+    const [isActiveRecallMode, setIsActiveRecallMode] = useState(false);
+    const [mentorPersona, setMentorPersona] = useState('Friendly Tutor'); // 'Strict Coach', 'Research Advisor', etc.
+    const [cognitiveLoad, setCognitiveLoad] = useState({ fatigueLevel: 0, stuckDetected: false });
+    const [masteryEstimates, setMasteryEstimates] = useState({ timeToMaster: 0, decayNextAlert: null });
+    const [citations, setCitations] = useState([]);
+
     const [colorSettings, setColorSettings] = useState({
         '#ffff00': 'Definition',
         '#00ffff': 'Formula',
@@ -371,8 +389,23 @@ export const PDFProvider = ({ children }) => {
         addToNavHistory,
         searchOperators,
         setSearchOperators,
-        toggleSearchOperator
-
+        toggleSearchOperator,
+        // Advanced Academic Features
+        examConfig, setExamConfig,
+        masteryMetrics, setMasteryMetrics,
+        studyPlan, setStudyPlan,
+        crossPDFInsights, setCrossPDFInsights,
+        equationInsights, setEquationInsights,
+        isMathMode, setIsMathMode,
+        activeEquation, setActiveEquation,
+        // Elite Features
+        knowledgeGraph, setKnowledgeGraph,
+        conceptMastery, setConceptMastery,
+        isActiveRecallMode, setIsActiveRecallMode,
+        mentorPersona, setMentorPersona,
+        cognitiveLoad, setCognitiveLoad,
+        masteryEstimates, setMasteryEstimates,
+        citations, setCitations
     };
 
     async function handleDownload() {

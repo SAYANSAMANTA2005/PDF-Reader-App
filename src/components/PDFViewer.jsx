@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { usePDF } from '../context/PDFContext';
 import * as pdfjsLib from 'pdfjs-dist';
 import AnnotationLayer from './AnnotationLayer';
+import ActiveRecallOverlay from './ActiveRecallOverlay';
 
 const PDFViewer = () => {
     const {
@@ -13,7 +14,10 @@ const PDFViewer = () => {
         rotation,
         isTwoPageMode,
         isReading,
-        startReading
+        startReading,
+        isMathMode,
+        setActiveEquation,
+        isActiveRecallMode
     } = usePDF();
 
     const containerRef = useRef(null);
@@ -116,6 +120,9 @@ const PDFViewer = () => {
                             rotation={rotation}
                             isReading={isReading}
                             onStartReading={startReading}
+                            isMathMode={isMathMode}
+                            setActiveEquation={setActiveEquation}
+                            isActiveRecallMode={isActiveRecallMode}
                         />
                     </div>
                 ))}
@@ -124,12 +131,13 @@ const PDFViewer = () => {
     );
 };
 
-const PDFPage = ({ pageNum, pdfDocument, scale, rotation, isReading, onStartReading }) => {
+const PDFPage = ({ pageNum, pdfDocument, scale, rotation, isReading, onStartReading, isMathMode, setActiveEquation, isActiveRecallMode }) => {
     const canvasRef = useRef(null);
     const textLayerRef = useRef(null);
     const [isVisible, setIsVisible] = useState(false);
     const containerRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+    const [isUnlocked, setIsUnlocked] = useState(false);
 
     // Intersection Observer to lazy load
     useEffect(() => {
@@ -206,7 +214,7 @@ const PDFPage = ({ pageNum, pdfDocument, scale, rotation, isReading, onStartRead
                             span.style.position = 'absolute';
                             span.style.color = 'transparent';
                             span.style.whiteSpace = 'pre';
-                            span.style.cursor = isReading ? 'pointer' : 'text'; // Visual cue
+                            span.style.cursor = isReading ? 'pointer' : (isMathMode ? 'crosshair' : 'text'); // Visual cue
 
                             // Transform for width (basic approx)
                             span.style.transform = `scaleX(${item.width / (item.str.length * fontHeight)})`;
@@ -223,6 +231,11 @@ const PDFPage = ({ pageNum, pdfDocument, scale, rotation, isReading, onStartRead
                                     // Start reading from this point
                                     console.log(`Starting reading from page ${pageNum}, item ${index}`);
                                     onStartReading(pageNum, index);
+                                } else if (isMathMode) {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    console.log(`Analyzing equation: ${item.str}`);
+                                    setActiveEquation(item.str);
                                 }
                             };
 
@@ -257,6 +270,10 @@ const PDFPage = ({ pageNum, pdfDocument, scale, rotation, isReading, onStartRead
             <canvas ref={canvasRef} />
             <div className="textLayer" ref={textLayerRef} style={{ position: 'absolute', top: 0, left: 0 }}></div>
             <AnnotationLayer width={dimensions.width} height={dimensions.height} scale={scale} pageNum={pageNum} />
+
+            {isActiveRecallMode && !isUnlocked && (
+                <ActiveRecallOverlay pageNum={pageNum} onReveal={() => setIsUnlocked(true)} />
+            )}
         </div>
     );
 };

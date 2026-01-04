@@ -19,9 +19,12 @@ import {
     Info,
     Download,
     BookOpen,
-    MessageSquare
+    MessageSquare,
+    Sigma,
+    Brain
 } from 'lucide-react';
 import DrawingPanel from './DrawingPanel';
+import EquationInsightPanel from './EquationInsightPanel';
 
 const Toolbar = () => {
     const {
@@ -36,7 +39,10 @@ const Toolbar = () => {
         isTwoPageMode, setIsTwoPageMode,
         annotationColor, setAnnotationColor,
         isReading, setIsReading, stopReading,
-        brushThickness, handleDownload
+        brushThickness, handleDownload,
+        isMathMode, setIsMathMode,
+        activeEquation, setActiveEquation,
+        isActiveRecallMode, setIsActiveRecallMode
     } = usePDF();
 
     const [isDrawingPanelOpen, setIsDrawingPanelOpen] = useState(false);
@@ -196,6 +202,30 @@ const Toolbar = () => {
                 >
                     <MessageSquare size={20} />
                 </button>
+                <button
+                    onClick={() => {
+                        setIsMathMode(!isMathMode);
+                        if (!isMathMode) {
+                            setIsPDFChatOpen(false);
+                            setIsTextToSpeechOpen(false);
+                        }
+                    }}
+                    className={`tool-btn ${isMathMode ? 'active' : ''}`}
+                    style={{ color: isMathMode ? 'var(--accent-color)' : 'inherit' }}
+                    title="Equation Intelligence (Explain math/formulas)"
+                    disabled={!pdfDocument}
+                >
+                    <Sigma size={20} />
+                </button>
+                <button
+                    onClick={() => setIsActiveRecallMode(!isActiveRecallMode)}
+                    className={`tool-btn ${isActiveRecallMode ? 'active' : ''}`}
+                    style={{ color: isActiveRecallMode ? 'var(--accent-color)' : 'inherit' }}
+                    title="Active Recall First Mode (Hide content until explained)"
+                    disabled={!pdfDocument}
+                >
+                    <Brain size={20} />
+                </button>
             </div>
 
             <div className="toolbar-group">
@@ -220,6 +250,14 @@ const Toolbar = () => {
             {/* PDF Context Chat Panel */}
             {isPDFChatOpen && (
                 <PDFContextChat onClose={() => setIsPDFChatOpen(false)} />
+            )}
+
+            {/* Equation Insight Modal */}
+            {activeEquation && (
+                <EquationInsightPanel
+                    equation={activeEquation}
+                    onClose={() => setActiveEquation(null)}
+                />
             )}
         </div>
     );

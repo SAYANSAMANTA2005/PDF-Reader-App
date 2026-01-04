@@ -8,6 +8,12 @@ import WorkspacePanel from './WorkspacePanel';
 import TabManager from './TabManager';
 import SemanticHub from './SemanticHub';
 import AnnotationHistory from './AnnotationHistory';
+import ProStudyEngine from './ProStudyEngine';
+import InsightHub from './InsightHub';
+import KnowledgeGraph from './KnowledgeGraph';
+import AnalyticsDashboard from './AnalyticsDashboard';
+import ResearchExplorer from './ResearchExplorer';
+import EcosystemPanel from './EcosystemPanel';
 import {
     Grid,
     Bookmark,
@@ -18,7 +24,11 @@ import {
     Layout,
     Palette,
     Database,
-    Clock
+    Clock,
+    Target,
+    GitBranch,
+    Users,
+    TrendingUp
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -50,10 +60,11 @@ const Sidebar = () => {
         { id: 'tabmanager', icon: <Layout size={18} />, label: 'Files' },
         { id: 'thumbnails', icon: <Grid size={18} />, label: 'Nodes' },
         { id: 'summary', icon: <Sparkles size={18} />, label: 'AI' },
-        { id: 'semantics', icon: <Palette size={18} />, label: 'Color' },
-        { id: 'history', icon: <Database size={18} />, label: 'Log' },
-        { id: 'learning', icon: <BookOpen size={18} />, label: 'Study' },
-        { id: 'publishing', icon: <Share2 size={18} />, label: 'Hub' },
+        { id: 'graph', icon: <GitBranch size={18} />, label: 'Graph' },
+        { id: 'analytics', icon: <TrendingUp size={18} />, label: 'Stats' },
+        { id: 'exams', icon: <Target size={18} />, label: 'Goal' },
+        { id: 'research', icon: <Database size={18} />, label: 'Source' },
+        { id: 'ecosystem', icon: <Users size={18} />, label: 'Room' },
         { id: 'workspace', icon: <Layers size={18} />, label: 'Pro' },
     ];
 
@@ -61,7 +72,7 @@ const Sidebar = () => {
         <aside className="sidebar" style={{ width: `${sidebarWidth}px`, display: 'flex', flexDirection: 'column' }}>
             <div className="sidebar-tabs" style={{
                 display: 'grid',
-                gridTemplateColumns: `repeat(${tabs.length / 2}, 1fr)`,
+                gridTemplateColumns: `repeat(5, 1fr)`,
                 borderBottom: '1px solid var(--border-color)',
                 backgroundColor: 'var(--bg-secondary)',
                 rowGap: '2px'
@@ -97,10 +108,12 @@ const Sidebar = () => {
                 {activeSidebarTab === 'tabmanager' && <TabManager />}
                 {activeSidebarTab === 'thumbnails' && <Thumbnails />}
                 {activeSidebarTab === 'summary' && <SummaryPanel />}
-                {activeSidebarTab === 'semantics' && <SemanticHub />}
-                {activeSidebarTab === 'history' && <AnnotationHistory />}
-                {activeSidebarTab === 'learning' && <LearningPanel />}
-                {activeSidebarTab === 'publishing' && <PublishingPanel />}
+                {activeSidebarTab === 'exams' && <ProStudyEngine />}
+                {activeSidebarTab === 'insights' && <InsightHub />}
+                {activeSidebarTab === 'graph' && <KnowledgeGraph />}
+                {activeSidebarTab === 'analytics' && <AnalyticsDashboard />}
+                {activeSidebarTab === 'research' && <ResearchExplorer />}
+                {activeSidebarTab === 'ecosystem' && <EcosystemPanel />}
                 {activeSidebarTab === 'workspace' && <WorkspacePanel />}
                 {activeSidebarTab === 'bookmarks' && (
                     <div className="p-4 text-center text-secondary">Bookmarks not yet implemented</div>

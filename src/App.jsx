@@ -3,12 +3,16 @@ import { usePDF } from './context/PDFContext';
 import Toolbar from './components/Toolbar';
 import Sidebar from './components/Sidebar';
 import PDFViewer from './components/PDFViewer';
-import { Upload, FileText, Moon, Sun } from 'lucide-react';
+import { Upload, FileText, Moon, Sun, AlertCircle, XCircle, Zap } from 'lucide-react';
+import { useCognitiveOptimizer } from './utils/cognitiveOptimizer';
 import clsx from 'clsx'; // Assuming clsx might be used or standard template literal
 
 const App = () => {
-    const { pdfDocument, loadPDF, isSidebarOpen, isLoading, error, theme, toggleTheme } = usePDF();
+    const { pdfDocument, loadPDF, isSidebarOpen, isLoading, error, mentorPersona, cognitiveLoad, setCognitiveLoad } = usePDF();
     const [isDragging, setIsDragging] = useState(false);
+
+    // Elite Feature: Cognitive Load Monitoring
+    useCognitiveOptimizer();
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -75,6 +79,36 @@ const App = () => {
                     </main>
                 </div>
             </div>
+
+            {/* Cognitive/Stuck Alert Notification */}
+            {(cognitiveLoad.stuckDetected || cognitiveLoad.fatigueLevel > 70) && (
+                <div className="fixed bottom-6 right-6 z-[3000] w-80 bg-primary border-2 border-accent shadow-2xl rounded-2xl p-4 animate-in slide-in-from-right-10">
+                    <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2 text-accent">
+                            <AlertCircle size={18} />
+                            <span className="font-bold text-xs">Mentor Support</span>
+                        </div>
+                        <button onClick={() => setCognitiveLoad({ fatigueLevel: 0, stuckDetected: false })} className="text-secondary"><XCircle size={14} /></button>
+                    </div>
+                    <p className="text-xs text-primary font-medium leading-relaxed">
+                        {cognitiveLoad.stuckDetected
+                            ? `It looks like you've re-read this section multiple times. You might be missing a prerequisite. Want a 5-minute primer?`
+                            : `I've detected some fatigue in your reading patterns. Take a 2-minute break to stay sharp?`}
+                    </p>
+                    <div className="flex gap-2 mt-4">
+                        <button className="flex-1 bg-accent text-white text-[10px] font-bold py-2 rounded-lg flex items-center justify-center gap-1">
+                            <Zap size={10} /> {cognitiveLoad.stuckDetected ? 'Yes, Explain it' : 'Take Break'}
+                        </button>
+                        <button onClick={() => setCognitiveLoad({ fatigueLevel: 0, stuckDetected: false })} className="flex-1 bg-secondary text-secondary text-[10px] font-bold py-2 rounded-lg border">Dismiss</button>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                        <div className="flex-1 h-1 bg-secondary rounded-full overflow-hidden">
+                            <div className="h-full bg-accent transition-all" style={{ width: `${cognitiveLoad.fatigueLevel}%` }} />
+                        </div>
+                        <span className="text-[8px] text-secondary font-bold uppercase tracking-widest">Cognitive Load</span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

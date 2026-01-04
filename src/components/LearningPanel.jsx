@@ -13,11 +13,13 @@ import {
     Loader2,
     ChevronRight,
     RotateCcw,
-    Trophy
+    Trophy,
+    Share
 } from 'lucide-react';
+import { generatePublicShareLink } from '../utils/growthService';
 
 const LearningPanel = () => {
-    const { pdfDocument, fileName } = usePDF();
+    const { pdfDocument, fileName, flashcards, setFlashcards } = usePDF();
     const [activeSubTab, setActiveSubTab] = useState('study'); // study, practice, exam
     const [isLoading, setIsLoading] = useState(false);
     const [content, setContent] = useState(null);
@@ -53,6 +55,17 @@ const LearningPanel = () => {
             }
             setContent({ type, data: result });
 
+            // Sync with global context for exports
+            if (type === 'flashcards') {
+                const parsed = result.split('\n\n').map(pair => {
+                    const lines = pair.split('\n');
+                    const q = lines.find(l => l.includes('Question:')) || lines[0];
+                    const a = lines.find(l => l.includes('Answer:')) || lines[1];
+                    return { Question: q.replace('Question: ', '').trim(), Answer: a?.replace('Answer: ', '').trim() || '' };
+                }).filter(f => f.Question.length > 0);
+                setFlashcards(parsed);
+            }
+
             // Track mastery update (mock)
             if (type !== 'revision') {
                 await saveProgress(fileName, type, Math.floor(Math.random() * 20) + 10); // Initial 10-30% mastery for generating
@@ -74,14 +87,17 @@ const LearningPanel = () => {
             const text = await extractText(pdfDocument);
             let result;
             if (type === 'formulas') {
-                const extracted = proUtils.extractFormulas(text);
-                result = extracted.length > 0
-                    ? "Σ Extracted Formula Sheet:\n\n" + extracted.join('\n\n')
+                const formulaData = proUtils.extractFormulas(text);
+                result = formulaData.length > 0
+                    ? "Σ Extracted Formula Sheet:\n\n" + formulaData.join('\n\n')
                     : "No clear mathematical formulas detected using heuristics.";
             } else if (type === 'flashcards-rules') {
-                const extracted = proUtils.extractDefinitions(text);
-                result = extracted.length > 0
-                    ? extracted.map((d, i) => `${i + 1}. Q: ${d.question}\n   A: ${d.answer}`).join('\n\n')
+                const definitionData = proUtils.extractDefinitions(text);
+                if (definitionData.length > 0) {
+                    setFlashcards(definitionData.map(d => ({ Question: d.question, Answer: d.answer })));
+                }
+                result = definitionData.length > 0
+                    ? definitionData.map((d, i) => `${i + 1}. Q: ${d.question}\n   A: ${d.answer}`).join('\n\n')
                     : "No clear definitions found using rule-based extraction. Try AI mode!";
             }
             setContent({ type, data: result });
@@ -167,12 +183,24 @@ const LearningPanel = () => {
                             {content.type === 'viva' && '🎙️ Interview Questions'}
                             {content.type === 'revision' && '📜 Revision Sheet'}
                         </h4>
-                        <button
-                            onClick={() => setContent(null)}
-                            style={{ background: 'none', border: 'none', color: 'var(--accent-color)', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-                        >
-                            <RotateCcw size={14} /> Reset
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.8rem' }}>
+                            <button
+                                onClick={() => {
+                                    const link = generatePublicShareLink(content.type, content.data);
+                                    navigator.clipboard.writeText(link);
+                                    alert("Public preview link copied! Non-users can view this to learn more about the app.");
+                                }}
+                                style={{ background: 'none', border: 'none', color: 'var(--accent-color)', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                            >
+                                <Share size={14} /> Share Publicly
+                            </button>
+                            <button
+                                onClick={() => setContent(null)}
+                                style={{ background: 'none', border: 'none', color: 'var(--accent-color)', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                            >
+                                <RotateCcw size={14} /> Reset
+                            </button>
+                        </div>
                     </div>
                     <div style={{
                         backgroundColor: 'var(--bg-secondary)',

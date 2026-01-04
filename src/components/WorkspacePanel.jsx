@@ -50,93 +50,103 @@ const WorkspacePanel = () => {
     };
 
     return (
-        <div className="workspace-panel" style={{ padding: '1rem', overflowY: 'auto', height: '100% ' }}>
-            <section style={{ marginBottom: '2rem' }}>
-                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                    <Layout size={18} /> Workspaces
-                </h4>
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+        <div className="workspace-panel p-6 space-y-8 h-full overflow-y-auto bg-primary/20">
+            <header className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-xl font-extrabold gradient-text">Pro Workspace</h2>
+                    <p className="text-[10px] text-secondary font-bold uppercase tracking-widest mt-1">Multi-Document Management</p>
+                </div>
+                <div className="bg-indigo-100/50 dark:bg-indigo-900/20 p-2 rounded-lg">
+                    <Layout size={24} className="text-indigo-600" />
+                </div>
+            </header>
+
+            <section className="space-y-4">
+                <div className="flex items-center justify-between px-1">
+                    <h3 className="text-xs font-black text-secondary uppercase tracking-widest flex items-center gap-2">
+                        <Folder size={14} className="text-indigo-500" />
+                        Environments
+                    </h3>
+                </div>
+
+                <div className="flex gap-2">
                     <input
                         type="text"
                         value={newWsName}
                         onChange={(e) => setNewWsName(e.target.value)}
-                        placeholder="New Workspace Name..."
-                        style={{
-                            flex: 1, padding: '0.5rem', borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)',
-                            color: 'var(--text-primary)', fontSize: '0.85rem'
-                        }}
+                        placeholder="Project Name..."
+                        className="premium-input flex-1"
                     />
-                    <button onClick={addWorkspace} className="btn-primary" style={{ padding: '0.5rem 1rem' }}>
-                        <Plus size={16} />
+                    <button onClick={addWorkspace} className="premium-btn !p-2 !shadow-none">
+                        <Plus size={20} />
                     </button>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div className="grid gap-2">
                     {workspaces.map(ws => (
                         <button
                             key={ws.id}
                             onClick={() => switchWorkspace(ws.id)}
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem',
-                                borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)',
-                                backgroundColor: activeWorkspaceId === ws.id ? 'var(--accent-color)' : 'var(--bg-secondary)',
-                                color: activeWorkspaceId === ws.id ? 'white' : 'var(--text-primary)',
-                                cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s'
-                            }}
+                            className={`group flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${activeWorkspaceId === ws.id ? 'border-indigo-500 bg-indigo-500/5 ring-4 ring-indigo-500/5' : 'border-divider bg-bg-secondary hover:border-indigo-500/30'}`}
                         >
-                            <Folder size={16} />
-                            <span style={{ flex: 1 }}>{ws.name}</span>
-                            {activeWorkspaceId === ws.id && <Check size={16} />}
+                            <div className={`p-2 rounded-lg transition ${activeWorkspaceId === ws.id ? 'bg-indigo-500 text-white' : 'bg-secondary text-secondary group-hover:text-indigo-500'}`}>
+                                <Folder size={16} />
+                            </div>
+                            <span className={`flex-1 text-xs font-bold transition ${activeWorkspaceId === ws.id ? 'text-indigo-600' : 'text-primary'}`}>{ws.name}</span>
+                            {activeWorkspaceId === ws.id && <Check size={16} className="text-indigo-500" />}
                         </button>
                     ))}
                 </div>
             </section>
 
-            <section style={{ marginBottom: '2rem' }}>
-                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                    <StickyNote size={18} /> Universal Notes
-                </h4>
-                <textarea
-                    value={noteText}
-                    onChange={(e) => setNoteText(e.target.value)}
-                    placeholder="Capture a thought across all PDFs..."
-                    style={{
-                        width: '100%', minHeight: '80px', padding: '0.75rem', borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)',
-                        color: 'var(--text-primary)', fontSize: '0.85rem', marginBottom: '0.5rem',
-                        resize: 'none'
-                    }}
-                />
-                <button onClick={addNote} className="btn-primary" style={{ width: '100%', padding: '0.6rem' }}>
-                    Save Note
-                </button>
+            <div className="h-px bg-divider opacity-50" />
 
-                <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <section className="space-y-4">
+                <h3 className="text-xs font-black text-secondary uppercase tracking-widest flex items-center gap-2 px-1">
+                    <StickyNote size={14} className="text-amber-500" />
+                    Universal Insights
+                </h3>
+
+                <div className="glass-card p-4 space-y-3 border-l-4 border-l-amber-500/30">
+                    <textarea
+                        value={noteText}
+                        onChange={(e) => setNoteText(e.target.value)}
+                        placeholder="Capture a thought across all PDFs..."
+                        className="premium-input min-h-[100px] resize-none border-none bg-transparent !p-0 focus:ring-0"
+                    />
+                    <button onClick={addNote} className="premium-btn w-full !bg-amber-600 hover:!bg-amber-700 shadow-amber-600/20">
+                        Capture Insight
+                    </button>
+                </div>
+
+                <div className="space-y-3">
                     {universalNotes.map(note => (
-                        <div key={note.id} style={{
-                            padding: '0.75rem', borderRadius: 'var(--radius-md)',
-                            backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)'
-                        }}>
-                            <div style={{ fontSize: '0.7rem', color: 'var(--accent-color)', marginBottom: '0.3rem' }}>
-                                Ref: {note.fileName} • {note.timestamp}
+                        <div key={note.id} className="glass-card p-4 hover:border-amber-400/50 transition border-l-4 border-l-amber-500/20">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-[9px] font-black text-amber-600 bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 rounded uppercase tracking-tighter">REF: {note.fileName}</span>
+                                <span className="text-[8px] text-secondary font-bold">{note.timestamp}</span>
                             </div>
-                            <div style={{ fontSize: '0.85rem' }}>{note.text}</div>
+                            <p className="text-[11px] text-primary leading-relaxed font-medium">{note.text}</p>
                         </div>
                     ))}
                 </div>
             </section>
 
-            <section>
-                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                    <History size={18} /> Pro Sessions
-                </h4>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                    Tracking jump-links and history...
+            <section className="p-5 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-2xl text-white shadow-xl shadow-indigo-500/20 overflow-hidden relative">
+                <div className="absolute -bottom-4 -right-4 opacity-10">
+                    <History size={80} />
+                </div>
+                <div className="relative z-10">
+                    <h4 className="text-sm font-black flex items-center gap-2">
+                        <History size={16} />
+                        Pro Analytics
+                    </h4>
+                    <p className="text-[10px] opacity-80 mt-2 font-bold leading-relaxed">Cross-document jump history and knowledge-link mapping is active.</p>
                 </div>
             </section>
         </div>
     );
 };
+
 
 export default WorkspacePanel;

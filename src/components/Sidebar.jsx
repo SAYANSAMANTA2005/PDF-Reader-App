@@ -41,7 +41,7 @@ const Sidebar = () => {
 
         const handleMouseMove = (moveEvent) => {
             const deltaX = moveEvent.clientX - startX;
-            const newWidth = Math.min(Math.max(startWidth + deltaX, 200), 600);
+            const newWidth = Math.min(Math.max(startWidth + deltaX, 220), 600);
             setSidebarWidth(newWidth);
         };
 
@@ -57,25 +57,26 @@ const Sidebar = () => {
     };
 
     const tabs = [
-        { id: 'tabmanager', icon: <Layout size={18} />, label: 'Files' },
-        { id: 'thumbnails', icon: <Grid size={18} />, label: 'Nodes' },
-        { id: 'summary', icon: <Sparkles size={18} />, label: 'AI' },
-        { id: 'graph', icon: <GitBranch size={18} />, label: 'Graph' },
-        { id: 'analytics', icon: <TrendingUp size={18} />, label: 'Stats' },
-        { id: 'exams', icon: <Target size={18} />, label: 'Goal' },
-        { id: 'research', icon: <Database size={18} />, label: 'Source' },
-        { id: 'ecosystem', icon: <Users size={18} />, label: 'Room' },
-        { id: 'workspace', icon: <Layers size={18} />, label: 'Pro' },
+        { id: 'tabmanager', icon: <Layout size={16} />, label: 'Files' },
+        { id: 'thumbnails', icon: <Grid size={16} />, label: 'Nodes' },
+        { id: 'summary', icon: <Sparkles size={16} />, label: 'AI' },
+        { id: 'graph', icon: <GitBranch size={16} />, label: 'Graph' },
+        { id: 'analytics', icon: <TrendingUp size={16} />, label: 'Stats' },
+        { id: 'exams', icon: <Target size={16} />, label: 'Goal' },
+        { id: 'research', icon: <Database size={16} />, label: 'Source' },
+        { id: 'ecosystem', icon: <Users size={16} />, label: 'Room' },
+        { id: 'workspace', icon: <Layers size={16} />, label: 'Pro' },
     ];
 
     return (
-        <aside className="sidebar" style={{ width: `${sidebarWidth}px`, display: 'flex', flexDirection: 'column' }}>
+        <aside className="sidebar select-none" style={{ width: `${sidebarWidth}px`, display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', position: 'relative' }}>
             <div className="sidebar-tabs" style={{
                 display: 'grid',
-                gridTemplateColumns: `repeat(5, 1fr)`,
+                gridTemplateColumns: `repeat(auto-fit, minmax(60px, 1fr))`,
+                padding: '4px',
+                gap: '4px',
                 borderBottom: '1px solid var(--border-color)',
-                backgroundColor: 'var(--bg-secondary)',
-                rowGap: '2px'
+                backgroundColor: 'var(--bg-primary)'
             }}>
                 {tabs.map(tab => (
                     <button
@@ -87,22 +88,29 @@ const Sidebar = () => {
                             flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            padding: '0.6rem 0',
-                            gap: '2px',
+                            padding: '8px 4px',
+                            gap: '4px',
                             border: 'none',
-                            background: 'none',
+                            borderRadius: '8px',
+                            background: activeSidebarTab === tab.id ? 'var(--bg-secondary)' : 'transparent',
                             color: activeSidebarTab === tab.id ? 'var(--accent-color)' : 'var(--text-secondary)',
                             cursor: 'pointer',
-                            fontSize: '0.65rem',
-                            borderBottom: activeSidebarTab === tab.id ? '2px solid var(--accent-color)' : '2px solid transparent',
-                            transition: 'all 0.2s ease'
+                            fontSize: '0.6rem',
+                            fontWeight: activeSidebarTab === tab.id ? '800' : '600',
+                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            boxShadow: activeSidebarTab === tab.id ? '0 2px 4px rgba(0,0,0,0.05), 0 0 1px rgba(0,0,0,0.1)' : 'none',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.02em'
                         }}
                     >
-                        {tab.icon}
-                        <span>{tab.label}</span>
+                        <div className={`transition-transform duration-200 ${activeSidebarTab === tab.id ? 'scale-110' : 'scale-100'}`}>
+                            {tab.icon}
+                        </div>
+                        <span style={{ fontSize: '0.55rem' }}>{tab.label}</span>
                     </button>
                 ))}
             </div>
+
 
             <div className="sidebar-content" style={{ flex: 1, overflowY: 'auto' }}>
                 {activeSidebarTab === 'tabmanager' && <TabManager />}

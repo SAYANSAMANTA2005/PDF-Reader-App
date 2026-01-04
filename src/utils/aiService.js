@@ -1,50 +1,81 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const getApiKey = () => {
-    return localStorage.getItem("GEMINI_API_KEY") || import.meta.env.VITE_GEMINI_API_KEY;
+export const getApiKeys = () => {
+    const keys = localStorage.getItem("GEMINI_API_KEYS");
+    if (keys) return JSON.parse(keys);
+
+    const primaryKey = localStorage.getItem("GEMINI_API_KEY") || import.meta.env.VITE_GEMINI_API_KEY;
+    return primaryKey ? [primaryKey] : [];
 };
 
 export const setApiKey = (key) => {
-    localStorage.setItem("GEMINI_API_KEY", key);
+    setApiKeys([key]);
+};
+
+export const setApiKeys = (keys) => {
+    localStorage.setItem("GEMINI_API_KEYS", JSON.stringify(keys.filter(k => k && k.trim() !== "").slice(0, 5)));
 };
 
 export const hasApiKey = () => {
-    return !!getApiKey();
+    return getApiKeys().length > 0;
 };
 
-const getModel = (modelName = "gemini-3-flash-preview") => {
-    const key = getApiKey();
-    if (!key) throw new Error("API Key is missing. Please add it in the settings.");
+const getModel = (key, modelName = "gemini-3-flash-preview") => {
+    if (!key) throw new Error("API Key is missing.");
     const genAI = new GoogleGenerativeAI(key);
     return genAI.getGenerativeModel({ model: modelName });
 };
 
-// Global fallback wrapper
+// Global fallback wrapper with rotation for multiple keys
 const callAIFunc = async (prompt, text, modelName = "gemini-3-flash-preview") => {
-    try {
-        const key = getApiKey();
-        if (!key || key.trim() === "") {
-            throw new Error("No API key found. Please enter your Gemini API key in the settings.");
-        }
-
-        const model = getModel(modelName);
-        const fullPrompt = `${prompt}\n\nContent:\n${text}`;
-        const result = await model.generateContent(fullPrompt);
-        return (await result.response).text();
-    } catch (error) {
-        if (error.message.includes("API key not valid") || error.message.includes("API_KEY_INVALID")) {
-            throw new Error("The API key you provided is invalid. Please double-check it at aistudio.google.com and ensure you copied it correctly without any extra characters.");
-        }
-        if (error.message.includes("404") && modelName !== "gemini-3-flash-preview") {
-            console.warn(`Model ${modelName} failed with 404, falling back to gemini-3-flash-preview`);
-            return callAIFunc(prompt, text.substring(0, 10000), "gemini-3-flash-preview");
-        }
-        throw error;
+    const keys = getApiKeys();
+    if (keys.length === 0) {
+        throw new Error("No API keys found. Please enter your Gemini API keys in the settings.");
     }
+
+    let lastError = null;
+
+    // Try each key in sequence
+    for (let i = 0; i < keys.length; i++) {
+        try {
+            const key = keys[i];
+            const model = getModel(key, modelName);
+            const fullPrompt = `${prompt}\n\nContent:\n${text}`;
+            const result = await model.generateContent(fullPrompt);
+            return (await result.response).text();
+        } catch (error) {
+            lastError = error;
+            console.error(`API Key ${i + 1} failed:`, error.message);
+
+            // If it's a quota error or internal error, try next key
+            if (error.message.includes("429") || error.message.includes("quota") || error.message.includes("500")) {
+                continue;
+            }
+
+            // If it's an invalid key and we have more, try next. Otherwise throw.
+            if (error.message.includes("API key not valid") || error.message.includes("API_KEY_INVALID")) {
+                if (i === keys.length - 1) {
+                    throw new Error("One or more API keys are invalid. Please check your settings.");
+                }
+                continue;
+            }
+
+            // For 404 on specific models, fallback but don't necessarily rotate key immediately unless it continues to fail
+            if (error.message.includes("404") && modelName !== "gemini-3-flash-preview") {
+                return callAIFunc(prompt, text.substring(0, 10000), "gemini-3-flash-preview");
+            }
+
+            // If we've exhausted all keys, throw the last error
+            if (i === keys.length - 1) break;
+        }
+    }
+
+    throw lastError || new Error("Failed to process request with available API keys.");
 };
 
 export const clearApiKey = () => {
     localStorage.removeItem("GEMINI_API_KEY");
+    localStorage.removeItem("GEMINI_API_KEYS");
 };
 
 export const generateSummary = async (text) => {

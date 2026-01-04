@@ -12,7 +12,8 @@ import {
     CalendarClock,
     BookOpen,
     HelpCircle,
-    ArrowRight
+    ArrowRight,
+    Zap
 } from 'lucide-react';
 
 const ProStudyEngine = () => {
@@ -48,7 +49,6 @@ const ProStudyEngine = () => {
         if (!pdfDocument) return;
         setIsLoading(true);
         try {
-            // Mock mastery data if empty
             const currentMastery = Object.keys(masteryMetrics).length > 0 ? masteryMetrics : {
                 "Foundations": 45,
                 "Core Concepts": 30,
@@ -63,86 +63,120 @@ const ProStudyEngine = () => {
         }
     };
 
-    if (!pdfDocument) return <div className="p-4 text-center">Open a PDF to access Pro Study features.</div>;
+    if (!pdfDocument) return (
+        <div className="p-8 text-center flex flex-col items-center gap-4">
+            <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center text-accent">
+                <Target size={32} />
+            </div>
+            <p className="text-secondary font-medium">Open a PDF to access Pro Study features.</p>
+        </div>
+    );
 
     return (
-        <div className="pro-study-engine p-4">
-            <h3 className="flex items-center gap-2 mb-4 text-primary font-bold">
-                <Target size={20} className="text-accent" />
-                Exam Blueprint Mode
-            </h3>
-
-            {!studyPlan ? (
-                <div className="blueprint-setup flex flex-col gap-3 p-4 bg-secondary rounded-lg border">
-                    <div>
-                        <label className="text-xs text-secondary uppercase font-semibold">Exam Name</label>
-                        <input
-                            type="text"
-                            className="w-full p-2 bg-primary border rounded mt-1"
-                            placeholder="e.g. JEE, CFA Level 1, University Final"
-                            value={examName}
-                            onChange={(e) => setExamName(e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        <label className="text-xs text-secondary uppercase font-semibold">Exam Date</label>
-                        <input
-                            type="date"
-                            className="w-full p-2 bg-primary border rounded mt-1"
-                            value={examDate}
-                            onChange={(e) => setExamDate(e.target.value)}
-                        />
-                    </div>
-                    <button
-                        onClick={handleGenerateBlueprint}
-                        disabled={isLoading || !examName || !examDate}
-                        className="w-full bg-accent text-white p-2 rounded-lg mt-2 flex items-center justify-center gap-2 hover:opacity-90 transition"
-                    >
-                        {isLoading ? <Loader2 className="animate-spin" size={18} /> : <CalendarClock size={18} />}
-                        Create Study Strategy
-                    </button>
+        <div className="pro-study-engine p-6 space-y-8">
+            <header className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-xl font-extrabold gradient-text">Goal Central</h2>
+                    <p className="text-[10px] text-secondary font-bold uppercase tracking-widest mt-1">Exam & Mastery Optimization</p>
                 </div>
-            ) : (
-                <div className="study-plan-container animate-in fade-in slide-in-from-bottom-4">
-                    <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-bold text-accent">{examConfig.name}</span>
-                        <button onClick={() => setStudyPlan(null)} className="text-xs text-secondary hover:underline">Reset</button>
-                    </div>
-                    <div className="p-4 bg-secondary border rounded-lg max-h-96 overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed">
-                        {studyPlan}
-                    </div>
+                <div className="bg-accent/10 p-2 rounded-lg">
+                    <Target size={24} className="text-accent" />
                 </div>
-            )}
+            </header>
 
-            <hr className="my-6 border-divider" />
+            <section className="space-y-4">
+                <h3 className="text-sm font-bold flex items-center gap-2">
+                    <CalendarClock size={16} className="text-accent" />
+                    Study Blueprint
+                </h3>
 
-            <h3 className="flex items-center gap-2 mb-4 text-primary font-bold">
-                <TrendingUp size={20} className="text-success" />
-                Predictive Readiness
-            </h3>
-
-            {!readinessReport ? (
-                <div className="readiness-cta p-4 bg-gradient-to-br from-secondary to-primary rounded-lg border border-dashed border-accent flex flex-col items-center text-center gap-2">
-                    <Trophy size={32} className="text-accent opacity-50" />
-                    <p className="text-xs text-secondary">AI will analyze your mastery and predict your score.</p>
-                    <button
-                        onClick={handlePredictReadiness}
-                        disabled={isLoading}
-                        className="text-xs font-bold text-accent px-4 py-2 border border-accent rounded-full hover:bg-accent hover:text-white transition"
-                    >
-                        Analyze Readiness
-                    </button>
-                </div>
-            ) : (
-                <div className="readiness-report p-4 bg-secondary rounded-lg border border-success/30 animate-in zoom-in-95">
-                    <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                        {readinessReport}
+                {!studyPlan ? (
+                    <div className="glass-card p-5 space-y-4 border-l-4 border-l-accent">
+                        <div className="input-group">
+                            <label className="input-label">Target Exam</label>
+                            <input
+                                type="text"
+                                className="premium-input"
+                                placeholder="e.g. UPSC, CFA, Final Exam"
+                                value={examName}
+                                onChange={(e) => setExamName(e.target.value)}
+                            />
+                        </div>
+                        <div className="input-group">
+                            <label className="input-label">Exam Date</label>
+                            <input
+                                type="date"
+                                className="premium-input"
+                                value={examDate}
+                                onChange={(e) => setExamDate(e.target.value)}
+                            />
+                        </div>
+                        <button
+                            onClick={handleGenerateBlueprint}
+                            disabled={isLoading || !examName || !examDate}
+                            className="premium-btn w-full"
+                        >
+                            {isLoading ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
+                            Generate Study Strategy
+                        </button>
                     </div>
-                    <button onClick={() => setReadinessReport(null)} className="mt-4 w-full text-xs text-secondary hover:underline">New Analysis</button>
-                </div>
-            )}
+                ) : (
+                    <div className="study-plan-container animate-in fade-in slide-in-from-bottom-4 space-y-3">
+                        <div className="flex justify-between items-center px-2">
+                            <div className="flex items-center gap-2">
+                                <span className="category-badge">{examConfig.name}</span>
+                                <span className="text-[10px] font-bold text-secondary">{examConfig.date}</span>
+                            </div>
+                            <button onClick={() => setStudyPlan(null)} className="text-[10px] font-bold text-accent hover:underline">RECONFIGURE</button>
+                        </div>
+                        <div className="study-plan-content max-h-96 overflow-y-auto whitespace-pre-wrap">
+                            {studyPlan}
+                        </div>
+                    </div>
+                )}
+            </section>
+
+            <div className="h-px bg-divider opacity-50" />
+
+            <section className="space-y-4">
+                <h3 className="text-sm font-bold flex items-center gap-2">
+                    <TrendingUp size={16} className="text-emerald-500" />
+                    Predictive Performance
+                </h3>
+
+                {!readinessReport ? (
+                    <div className="glass-card p-6 text-center space-y-4 bg-gradient-to-br from-emerald-50/50 to-blue-50/50 dark:from-emerald-950/10 dark:to-blue-950/10">
+                        <Trophy size={40} className="mx-auto text-emerald-500 opacity-80" />
+                        <div>
+                            <p className="text-sm font-bold">Predict Your Success</p>
+                            <p className="text-[11px] text-secondary mt-1">Our AI analyzes your reading patterns and mastery data to predict your readiness.</p>
+                        </div>
+                        <button
+                            onClick={handlePredictReadiness}
+                            disabled={isLoading}
+                            className="premium-btn w-full !bg-emerald-500 hover:!bg-emerald-600 shadow-emerald-500/20"
+                        >
+                            {isLoading ? <Loader2 className="animate-spin" size={18} /> : <ArrowRight size={18} />}
+                            Predict Readiness
+                        </button>
+                    </div>
+                ) : (
+                    <div className="readiness-report glass-card p-5 border-l-4 border-l-emerald-500 animate-in zoom-in-95">
+                        <div className="text-sm leading-relaxed whitespace-pre-wrap text-primary">
+                            {readinessReport}
+                        </div>
+                        <button
+                            onClick={() => setReadinessReport(null)}
+                            className="mt-6 w-full py-2 text-[10px] font-extrabold text-secondary hover:text-emerald-500 transition border-t border-divider pt-4"
+                        >
+                            RUN NEW ANALYSIS
+                        </button>
+                    </div>
+                )}
+            </section>
         </div>
     );
 };
+
 
 export default ProStudyEngine;

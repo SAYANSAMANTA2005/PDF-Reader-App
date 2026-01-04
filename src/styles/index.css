@@ -1,6 +1,8 @@
 /* src/styles/index.css */
 @import './viewer.css';
 @import './annotations.css';
+@import './advanced-ui.css';
+
 
 :root {
     --bg-primary: #f8fafc;

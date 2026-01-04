@@ -15,29 +15,37 @@ const SummaryPanel = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
     const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
-    const [apiKey, setApiKey] = useState(localStorage.getItem("GEMINI_API_KEY") || '');
+    const [apiKeys, setApiKeys] = useState(() => {
+        const saved = aiService.getApiKeys();
+        const initial = ['', '', '', '', ''];
+        saved.forEach((key, i) => { if (i < 5) initial[i] = key; });
+        return initial;
+    });
     const [showApiKeyInput, setShowApiKeyInput] = useState(!aiService.hasApiKey());
     const [error, setError] = useState(null);
 
-    // Persist API key
-    const handleSaveApiKey = () => {
-        let cleanedKey = apiKey.trim();
-        // Remove common copy-paste artifacts like "-->" or extra quotes
-        cleanedKey = cleanedKey.replace(/^.*?AIzaS/, 'AIzaS');
+    const handleKeyChange = (index, value) => {
+        const newKeys = [...apiKeys];
+        newKeys[index] = value;
+        setApiKeys(newKeys);
+    };
 
-        if (cleanedKey) {
-            aiService.setApiKey(cleanedKey);
-            setApiKey(cleanedKey); // Update local state with cleaned key
+    const handleSaveApiKeys = () => {
+        const cleanedKeys = apiKeys.map(k => k.trim()).filter(k => k !== '');
+        if (cleanedKeys.length > 0) {
+            aiService.setApiKeys(cleanedKeys);
             setShowApiKeyInput(false);
             setError(null);
+        } else {
+            setError("Please enter at least one valid API key.");
         }
     };
 
-    const handleClearKey = () => {
+    const handleClearKeys = () => {
         aiService.clearApiKey();
-        setApiKey('');
+        setApiKeys(['', '', '', '', '']);
         setShowApiKeyInput(true);
-        setError("API Key removed. Please enter a valid key from Google AI Studio.");
+        setError("All API Keys removed. Multi-key failover disabled.");
     };
 
     const handleGenerateAiSummary = async () => {
@@ -54,7 +62,7 @@ const SummaryPanel = () => {
             setAiSummary(result);
         } catch (err) {
             console.error("AI Summary generation failed", err);
-            setError(err.message || "Failed to generate AI summary. Check your API key or connection.");
+            setError(err.message || "Failed to generate AI summary. Check your API keys or connection.");
         } finally {
             setIsAiLoading(false);
         }
@@ -88,7 +96,6 @@ const SummaryPanel = () => {
         try {
             const text = await extractText(pdfDocument);
             const result = await aiService.getSmartSuggestions(text);
-            // Split by lines and clean up
             const lines = result.split('\n').filter(l => l.trim().length > 5).slice(0, 3);
             setSuggestions(lines);
         } catch (err) {
@@ -98,7 +105,6 @@ const SummaryPanel = () => {
         }
     };
 
-    // Load suggestions when document changes
     useEffect(() => {
         if (pdfDocument && aiService.hasApiKey()) {
             handleGetSuggestions();
@@ -110,96 +116,81 @@ const SummaryPanel = () => {
     }
 
     return (
-        <div className="summary-panel" style={{ padding: '1rem', height: '100%', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Sparkles size={20} color="var(--accent-color)" />
-                    AI Intelligence
-                </h3>
+        <div className="summary-panel p-6 space-y-8 h-full overflow-y-auto bg-primary/20">
+            <header className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-xl font-extrabold gradient-text">AI Intelligence</h2>
+                    <p className="text-[10px] text-secondary font-bold uppercase tracking-widest mt-1">Multi-Key Failover Engine</p>
+                </div>
                 <button
                     onClick={() => setShowApiKeyInput(!showApiKeyInput)}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
-                    title="API Key Settings"
+                    className={`p-2 rounded-lg transition ${showApiKeyInput ? 'bg-accent text-white' : 'bg-secondary text-secondary'}`}
                 >
-                    <Key size={16} />
+                    <Key size={20} />
                 </button>
-            </div>
+            </header>
 
             {showApiKeyInput && (
-                <div style={{
-                    backgroundColor: 'var(--bg-secondary)',
-                    padding: '1rem',
-                    borderRadius: 'var(--radius-md)',
-                    marginBottom: '1rem',
-                    border: '1px solid var(--border-color)'
-                }}>
-                    <label style={{ display: 'block', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Enter Gemini API Key:</label>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <input
-                            type="password"
-                            value={apiKey}
-                            onChange={(e) => setApiKey(e.target.value)}
-                            placeholder="Paste your Gemini API key here"
-                            style={{
-                                flex: 1,
-                                padding: '0.5rem',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--border-color)',
-                                backgroundColor: 'var(--bg-primary)',
-                                color: 'var(--text-primary)',
-                                fontSize: '0.85rem'
-                            }}
-                        />
-                        <button
-                            onClick={handleSaveApiKey}
-                            style={{
-                                backgroundColor: 'var(--accent-color)',
-                                color: 'white',
-                                border: 'none',
-                                padding: '0 1rem',
-                                borderRadius: 'var(--radius-sm)',
-                                fontSize: '0.85rem',
-                                cursor: 'pointer',
-                                fontWeight: '600'
-                            }}
-                        >
-                            Save Key
-                        </button>
+                <div className="glass-card p-5 space-y-4 border-l-4 border-l-accent animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="space-y-1">
+                        <label className="text-xs font-black text-secondary uppercase tracking-widest px-1">Configure Failover Keys</label>
+                        <p className="text-[10px] text-secondary/60 px-1">System will automatically rotate keys if rate limits are hit.</p>
                     </div>
-                    {aiService.hasApiKey() && (
+
+                    <div className="space-y-2">
+                        {apiKeys.map((key, index) => (
+                            <div key={index} className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-secondary/40">#{index + 1}</span>
+                                <input
+                                    type="password"
+                                    value={key}
+                                    onChange={(e) => handleKeyChange(index, e.target.value)}
+                                    placeholder={`Gemini API Key Slot ${index + 1}`}
+                                    className="premium-input !pl-8"
+                                />
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="pt-2 space-y-3">
                         <button
-                            onClick={handleClearKey}
-                            style={{
-                                marginTop: '0.5rem',
-                                background: 'none',
-                                border: 'none',
-                                color: '#b91c1c',
-                                cursor: 'pointer',
-                                fontSize: '0.75rem',
-                                textDecoration: 'underline',
-                                padding: 0
-                            }}
+                            onClick={handleSaveApiKeys}
+                            className="premium-btn w-full"
                         >
-                            Clear and Reset Key
+                            Deploy Engine
                         </button>
-                    )}
-                    <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Keys are stored locally in your browser.</span>
-                        {aiService.hasApiKey() && <span style={{ color: 'green' }}>● API Key Active</span>}
-                    </p>
+
+                        {aiService.hasApiKey() && (
+                            <button
+                                onClick={handleClearKeys}
+                                className="w-full py-2 text-[10px] font-black text-red-500 hover:text-red-600 uppercase tracking-widest transition-colors"
+                            >
+                                Purge All Credentials
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-divider">
+                        <span className="text-[9px] text-secondary font-bold">Encrypted local storage only.</span>
+                        {aiService.hasApiKey() && (
+                            <div className="flex items-center gap-1.5">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-[9px] text-emerald-600 font-black uppercase tracking-tighter">System Active</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
             {error && (
-                <div style={{
-                    padding: '0.75rem',
-                    backgroundColor: '#fee2e2',
-                    color: '#b91c1c',
-                    borderRadius: 'var(--radius-md)',
-                    marginBottom: '1rem',
-                    fontSize: '0.85rem'
-                }}>
-                    {error}
+                <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 animate-in shake duration-500">
+                    <div className="bg-red-500 text-white p-1 rounded-md">
+                        <Key size={14} />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-red-700">Security Alert</p>
+                        <p className="text-[10px] text-red-600 mt-0.5">{error}</p>
+                    </div>
                 </div>
             )}
 

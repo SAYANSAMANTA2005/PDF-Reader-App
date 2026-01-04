@@ -162,18 +162,20 @@ const PDFPage = ({ pageNum, pdfDocument, scale, rotation, isReading, onStartRead
     useEffect(() => {
         if (!isVisible || !pdfDocument || !canvasRef.current) return;
 
+        let renderTask = null;
         let isCancelled = false;
 
         const renderPage = async () => {
+            if (isCancelled) return;
             try {
                 const page = await pdfDocument.getPage(pageNum);
-
                 if (isCancelled) return;
 
                 const viewport = page.getViewport({ scale, rotation });
                 setDimensions({ width: viewport.width, height: viewport.height });
 
                 const canvas = canvasRef.current;
+                if (!canvas) return;
                 const context = canvas.getContext('2d');
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
@@ -183,9 +185,9 @@ const PDFPage = ({ pageNum, pdfDocument, scale, rotation, isReading, onStartRead
                     viewport: viewport,
                 };
 
-                await page.render(renderContext).promise;
+                renderTask = page.render(renderContext);
+                await renderTask.promise;
 
-                // Text Layer with Read Aloud support
                 if (textLayerRef.current) {
                     const textContent = await page.getTextContent();
                     if (isCancelled) return;
@@ -253,6 +255,9 @@ const PDFPage = ({ pageNum, pdfDocument, scale, rotation, isReading, onStartRead
 
         return () => {
             isCancelled = true;
+            if (renderTask) {
+                renderTask.cancel();
+            }
         };
     }, [isVisible, pdfDocument, pageNum, scale, rotation, isReading, onStartReading]);
 

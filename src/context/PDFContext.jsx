@@ -76,6 +76,20 @@ export const PDFProvider = ({ children }) => {
     const [cognitiveLoad, setCognitiveLoad] = useState({ fatigueLevel: 0, stuckDetected: false });
     const [masteryEstimates, setMasteryEstimates] = useState({ timeToMaster: 0, decayNextAlert: null });
     const [citations, setCitations] = useState([]);
+    const [flashcards, setFlashcards] = useState([]);
+    const [references, setReferences] = useState([]);
+    const [pdfText, setPdfText] = useState("");
+
+    // Growth & Viral Mechanics
+    const [referralPoints, setReferralPoints] = useState(0);
+    const [referralCount, setReferralCount] = useState(0);
+    const [leaderboardData, setLeaderboardData] = useState([
+        { name: 'Alex', points: 2500, avatar: 'A', rank: 1, badge: '🏆 Campus Lead' },
+        { name: 'Sarah', points: 2100, avatar: 'S', rank: 2, badge: '🔥 Hot Streak' },
+        { name: 'Mike', points: 1800, avatar: 'M', rank: 3, badge: '🥈 Top Contributor' }
+    ]);
+    const [studySessions, setStudySessions] = useState([]);
+    const [activeCall, setActiveCall] = useState(null);
 
     const [colorSettings, setColorSettings] = useState({
         '#ffff00': 'Definition',
@@ -225,6 +239,16 @@ export const PDFProvider = ({ children }) => {
             setFileName(currentFileName);
             setNumPages(pdf.numPages);
             setCurrentPage(1);
+
+            // Extract all text for integrations
+            let fullText = "";
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(" ");
+                fullText += `[Page ${i}]\n${pageText}\n\n`;
+            }
+            setPdfText(fullText);
 
             if (track) addToNavHistory(tabId, 1);
 
@@ -405,7 +429,16 @@ export const PDFProvider = ({ children }) => {
         mentorPersona, setMentorPersona,
         cognitiveLoad, setCognitiveLoad,
         masteryEstimates, setMasteryEstimates,
-        citations, setCitations
+        citations, setCitations,
+        flashcards, setFlashcards,
+        references, setReferences,
+        pdfText, setPdfText,
+        // Growth & Viral States
+        referralPoints, setReferralPoints,
+        referralCount, setReferralCount,
+        leaderboardData, setLeaderboardData,
+        studySessions, setStudySessions, // { id, title, start, end, type }
+        activeCall, setActiveCall // { roomId, participants, isRecording }
     };
 
     async function handleDownload() {

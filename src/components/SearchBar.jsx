@@ -78,31 +78,60 @@ const SearchBar = () => {
         const allMatches = [];
 
         try {
-            // Processing in batches of 50 pages to stay responsive
-            const BATCH_SIZE = 50;
+            const BATCH_SIZE = 20; // Smaller batch for coordinate calculation
             const totalPages = pdfDocument.numPages;
 
             for (let i = 1; i <= totalPages; i += BATCH_SIZE) {
                 const chunkEnd = Math.min(i + BATCH_SIZE - 1, totalPages);
 
-                // Process this batch
                 for (let pageNum = i; pageNum <= chunkEnd; pageNum++) {
                     const page = await pdfDocument.getPage(pageNum);
                     const textContent = await page.getTextContent();
-                    const fullText = textContent.items.map(item => item.str).join(' ');
+                    const viewport = page.getViewport({ scale: 1.0 });
 
-                    if (performAdvancedSearch(fullText, searchQuery, searchOperators)) {
-                        allMatches.push({
-                            pageNum,
-                            text: fullText.substring(0, 100) + '...',
-                        });
+                    // Use OUR advanced logic for filtering, but keep coordinate calculation for simple search
+                    const fullText = textContent.items.map(item => item.str).join(' ');
+                    const isMatch = performAdvancedSearch(fullText, searchQuery, searchOperators);
+
+                    if (isMatch) {
+                        const query = searchQuery.toLowerCase();
+
+                        // If it's a complex search (regex/boolean), we fall back to page-level result
+                        if (searchOperators.useRegex || searchOperators.useBoolean) {
+                            allMatches.push({
+                                pageNum,
+                                text: fullText.substring(0, 100) + '...',
+                            });
+                        } else {
+                            // Simple search: calculate coordinates (theirs)
+                            textContent.items.forEach((item) => {
+                                if (!item.str) return;
+                                const itemText = item.str.toLowerCase();
+
+                                let startIndex = 0;
+                                while ((startIndex = itemText.indexOf(query, startIndex)) !== -1) {
+                                    const [tx_a, tx_b, tx_c, tx_d, tx_e, tx_f] = item.transform;
+                                    const totalWidth = item.width || 0;
+                                    const charWidth = item.str.length > 0 ? totalWidth / item.str.length : 0;
+                                    const matchXOffset = startIndex * charWidth;
+                                    const matchWidth = query.length * charWidth;
+
+                                    allMatches.push({
+                                        pageNum,
+                                        x: (tx_e + matchXOffset) / viewport.width,
+                                        y: (viewport.height - tx_f) / viewport.height,
+                                        width: matchWidth / viewport.width,
+                                        height: Math.abs(tx_d) / viewport.height,
+                                        text: query
+                                    });
+                                    startIndex += query.length;
+                                }
+                            });
+                        }
                     }
                 }
 
-                // Update progress after each batch
                 setSearchProgress(Math.round((chunkEnd / totalPages) * 100));
-
-                // FORCE YIELD to browser for rendering/interactions
                 await new Promise(resolve => setTimeout(resolve, 0));
             }
 
@@ -113,7 +142,7 @@ const SearchBar = () => {
                 setCurrentPage(allMatches[0].pageNum);
             }
         } catch (error) {
-            console.error("Advanced search failed:", error);
+            console.error("Search engine error:", error);
         } finally {
             setIsSearching(false);
             setSearchProgress(0);

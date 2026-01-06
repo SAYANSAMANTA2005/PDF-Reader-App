@@ -155,8 +155,8 @@ const AnnotationLayer = ({ width, height, scale, pageNum }) => {
                             y={match.y * height - (match.height * height)} // Adjust since y is baseline usually
                             width={match.width * width}
                             height={match.height * height * 1.5} // slightly taller for visibility
-                            fill={idx === currentMatchIndex ? "#2e7d32" : "#a5d6a7"}
-                            opacity={0.4}
+                            fill={idx === currentMatchIndex ? "#1b5e20" : "#2e7d32"} // Dark Green theme
+                            opacity={idx === currentMatchIndex ? 0.6 : 0.4}
                             style={{ pointerEvents: 'none' }}
                         />
                     );

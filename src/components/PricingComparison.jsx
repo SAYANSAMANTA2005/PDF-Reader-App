@@ -20,46 +20,17 @@ const PricingComparison = ({ onSelectPlan }) => {
         { name: "Custom Mentor Personas", free: false, pro: false, elite: true }
     ];
 
-    const plans = {
-        monthly: [
-            { id: 'free', name: 'Free', price: '$0', period: '/forever' },
-            { id: 'pro', name: 'Pro', price: '$9.99', period: '/month', popular: false },
-            { id: 'elite', name: 'Elite', price: '$19.99', period: '/month', popular: true }
-        ],
-        yearly: [
-            { id: 'free', name: 'Free', price: '$0', period: '/forever' },
-            { id: 'pro', name: 'Pro', price: '$79.99', period: '/year', savings: 'Save $40', popular: false },
-            { id: 'elite', name: 'Elite', price: '$199.99', period: '/lifetime', savings: 'One-time', popular: true }
-        ]
-    };
-
-    const currentPlans = plans[billingCycle];
+    const plans = [
+        { id: 'free', name: 'Free', price: '₹0', period: '/forever' },
+        { id: 'pro', name: 'Pro', price: '₹5', period: '/month', popular: false },
+        { id: 'elite', name: 'Elite', price: '₹7', period: '/month', popular: true }
+    ];
 
     return (
         <div className="space-y-6">
-            {/* Billing Toggle */}
-            <div className="flex items-center justify-center gap-4">
-                <span className={`text-xs font-bold ${billingCycle === 'monthly' ? 'text-primary' : 'text-secondary'}`}>
-                    Monthly
-                </span>
-                <button
-                    onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-                    className="relative w-14 h-7 bg-secondary rounded-full transition"
-                >
-                    <motion.div
-                        className="absolute top-1 w-5 h-5 bg-accent rounded-full shadow-lg"
-                        animate={{ left: billingCycle === 'monthly' ? 4 : 32 }}
-                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                    />
-                </button>
-                <span className={`text-xs font-bold ${billingCycle === 'yearly' ? 'text-primary' : 'text-secondary'} flex items-center gap-1`}>
-                    Yearly
-                    {billingCycle === 'yearly' && (
-                        <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 text-[9px] rounded-full font-black">
-                            BEST VALUE
-                        </span>
-                    )}
-                </span>
+            {/* Simple Heading */}
+            <div className="text-center">
+                <p className="text-[10px] font-black tracking-[0.2em] text-accent uppercase">Strictly Monthly Membership</p>
             </div>
 
             {/* Comparison Table */}
@@ -71,35 +42,38 @@ const PricingComparison = ({ onSelectPlan }) => {
                                 <th className="text-left p-4 text-xs font-black uppercase tracking-widest text-secondary">
                                     Features
                                 </th>
-                                {currentPlans.map(plan => (
-                                    <th key={plan.id} className="p-4 relative">
+                                {plans.map(plan => (
+                                    <th
+                                        key={plan.id}
+                                        className={`p-4 relative transition-all duration-300 ${plan.id !== 'free' ? 'cursor-pointer hover:bg-accent/10 rounded-2xl group active:scale-95' : ''}`}
+                                        onClick={() => plan.id !== 'free' && onSelectPlan && onSelectPlan(plan.id)}
+                                    >
                                         {plan.popular && (
-                                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-accent rounded-full">
+                                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-accent rounded-full z-20 shadow-lg group-hover:scale-110 transition-transform">
                                                 <span className="text-[8px] font-black text-white uppercase tracking-widest flex items-center gap-1">
                                                     <Crown size={10} /> Most Popular
                                                 </span>
                                             </div>
                                         )}
-                                        <div className="text-center space-y-1">
-                                            <p className="text-sm font-black text-primary">{plan.name}</p>
-                                            <div>
-                                                <span className="text-2xl font-black text-accent">{plan.price}</span>
+                                        <div className="text-center space-y-2 relative z-10">
+                                            <p className="text-sm font-black text-primary group-hover:text-accent transition-colors tracking-tight">{plan.name}</p>
+                                            <div className="group-hover:scale-110 transition-transform duration-300">
+                                                <span className="text-3xl font-black text-accent">{plan.price}</span>
                                                 <span className="text-xs text-secondary">{plan.period}</span>
                                             </div>
                                             {plan.savings && (
-                                                <p className="text-[9px] font-bold text-emerald-600">{plan.savings}</p>
+                                                <p className="text-[9px] font-bold text-emerald-600 bg-emerald-500/10 py-1 rounded-full">{plan.savings}</p>
                                             )}
                                             {plan.id !== 'free' && (
-                                                <button
-                                                    onClick={() => onSelectPlan && onSelectPlan(plan.id)}
-                                                    className={`w-full mt-2 px-4 py-2 rounded-xl text-[10px] font-black transition ${plan.popular
-                                                            ? 'bg-accent text-white shadow-lg shadow-accent/30'
-                                                            : 'bg-secondary text-primary hover:bg-accent hover:text-white'
+                                                <div
+                                                    className={`w-full mt-3 px-4 py-2.5 rounded-xl text-[10px] font-black transition-all duration-300 ${plan.popular
+                                                        ? 'bg-accent text-white shadow-lg shadow-accent/30 scale-105'
+                                                        : 'bg-secondary text-primary group-hover:bg-accent group-hover:text-white'
                                                         }`}
                                                 >
                                                     {plan.popular ? <Sparkles size={12} className="inline mr-1" /> : null}
-                                                    Get Started
-                                                </button>
+                                                    {plan.popular ? 'Unlock Now' : 'Get Started'}
+                                                </div>
                                             )}
                                         </div>
                                     </th>

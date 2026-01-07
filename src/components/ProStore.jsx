@@ -190,7 +190,7 @@ const ProStore = () => {
                         {[
                             { q: "Can I cancel anytime?", a: "Yes! No long-term commitments. Cancel with one click." },
                             { q: "Do you offer a free trial?", a: "We offer a 30-day money-back guarantee instead." },
-                            { q: "What payment methods do you accept?", a: "We accept all major credit cards, PayPal, and more." },
+                            { q: "What payment methods do you accept?", a: "We accept all major credit cards, UPI, and more." },
                             { q: "Can I use it offline?", a: "Yes! Most features work offline once your PDF is loaded." }
                         ].map((faq, i) => (
                             <div key={i} className="glass-card p-5">
@@ -235,7 +235,7 @@ const ProStore = () => {
                                     <Crown />
                                 </div>
                                 <h3 className="text-xl font-black text-primary mb-2">Complete Your Purchase</h3>
-                                <p className="text-xs text-secondary">Secure checkout powered by Stripe</p>
+                                <p className="text-xs text-secondary">Secure checkout simulation</p>
                             </div>
 
                             {!showSuccess ? (
@@ -283,17 +283,17 @@ const ProStore = () => {
                                         ) : (
                                             <>
                                                 <CreditCard size={16} className="inline mr-2" />
-                                                Pay ${selectedPlan === 'pro' ? '79.99' : '199.99'}
+                                                Pay {selectedPlan === 'pro' ? '₹5' : '₹7'}
                                             </>
                                         )}
                                     </button>
 
                                     <div className="flex items-center justify-center gap-4 text-[9px] text-secondary">
                                         <div className="flex items-center gap-1">
-                                            <Shield size={10} /> Secure Payment
+                                            <Shield size={10} /> Secure Encryption
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <Check size={10} /> SSL Encrypted
+                                            <Check size={10} /> Instant Activation
                                         </div>
                                     </div>
                                 </div>
